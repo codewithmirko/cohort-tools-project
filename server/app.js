@@ -65,10 +65,9 @@ app.post("/api/students", (req, res) => {
 
 app.get("/api/students/cohort/:cohortId", (req, res) => {
   const { cohortId } = req.params;
-  cohortId = parseInt(cohortId);
-  Student.find({ cohort: cohortId }) // Convert cohortId to ObjectId
+
+  Student.find({cohort: cohortId})
     .then((students) => {
-      // Assuming you want to send the students as a response, you can do:
       res.status(200).json(students);
     })
     .catch((error) => {
@@ -78,8 +77,43 @@ app.get("/api/students/cohort/:cohortId", (req, res) => {
     });
 });
 
-// Cohort Routes
+app.get("/api/students/:studentId", (req, res) => {
+  const{studentId} = req.params;
 
+  Student.findById(studentId)
+    .then((student) => {
+      console.log("Catched :");
+      console.log("Catched student:", student);
+      res.status(200).json(student);
+    })
+    .catch((err) => {
+      res.status(500).json({
+        message: `Error on getting spesific student, error type:${err}`,
+      });
+    });
+});
+
+app.delete("/api/students/:studentId", (req, res) => {
+  const{studentId} = req.params;
+
+  Student.findByIdAndDelete(studentId)
+    .then((student) => {
+      console.log("Catched :");
+      console.log("Catched student:", student);
+      res.status(200).json(student);
+    })
+    .catch((err) => {
+      res.status(500).json({
+        message: `Error on getting spesific student, error type:${err}`,
+      });
+    });
+});
+
+
+
+
+
+// Cohort Routes
 app.get("/api/cohorts", (req, res) => {
   Cohort.find({})
     .then((cohorts) => {

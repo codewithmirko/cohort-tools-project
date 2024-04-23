@@ -17,7 +17,9 @@ const app = express();
 //mongoose
 mongoose
   .connect("mongodb://127.0.0.1:27017/cohort-tools-api")
-  .then((db) => console.log(`Connected to Database: "${db.connections[0].name}"`))
+  .then((db) =>
+    console.log(`Connected to Database: "${db.connections[0].name}"`)
+  )
   .catch((err) => console.error("Error connecting to MongoDB", err));
 
 // MIDDLEWARE
@@ -37,25 +39,58 @@ app.get("/docs", (req, res) => {
   res.sendFile(__dirname + "/views/docs.html");
 });
 
-app.get("/api/cohorts",(req,res) => {
-  Cohort.find({}).then((cohorts) =>{
-    console.log("Retrieved cohorts ->",cohorts);
-    res.json({cohorts});
-  }).catch((error) => {
-    console.error("Error while retrieving cohorts -> ", error);
-    res.status(500).json({error: "Failed to retrieve cohorts"});
-  })
-})
+// Student Routes
 
-app.get("/api/students",(req,res) => {
-  Student.find({}).then((students) =>{
-    console.log("Retrieved students ->",students);
-    res.json(students);
-  }).catch((error) => {
-    console.error("Error while retrieving students -> ", error);
-    res.status(500).json({error: "Failed to retrieve students"});
-  })
-})
+app.get("/api/students", (req, res) => {
+  Student.find({})
+    .then((students) => {
+      console.log("Retrieved students ->", students);
+      res.json(students);
+    })
+    .catch((error) => {
+      console.error("Error while retrieving students -> ", error);
+      res.status(500).json({ error: "Failed to retrieve students" });
+    });
+});
+
+app.post("/api/students", (req, res) => {
+  Student.create(req.body)
+    .then((newStudent) => {
+      res.status(201).json(newStudent);
+    })
+    .catch((error) => {
+      res.status(500).json({ message: `Error creating new student: ${error}` });
+    });
+});
+
+app.get("/api/students/cohort/:cohortId", (req, res) => {
+  const { cohortId } = req.params;
+  cohortId = parseInt(cohortId);
+  Student.find({ cohort: cohortId }) // Convert cohortId to ObjectId
+    .then((students) => {
+      // Assuming you want to send the students as a response, you can do:
+      res.status(200).json(students);
+    })
+    .catch((error) => {
+      res.status(500).json({
+        message: `Error retrieving students from one cohort: ${error}`,
+      });
+    });
+});
+
+// Cohort Routes
+
+app.get("/api/cohorts", (req, res) => {
+  Cohort.find({})
+    .then((cohorts) => {
+      console.log("Retrieved cohorts ->", cohorts);
+      res.json({ cohorts });
+    })
+    .catch((error) => {
+      console.error("Error while retrieving cohorts -> ", error);
+      res.status(500).json({ error: "Failed to retrieve cohorts" });
+    });
+});
 
 // START SERVER
 app.listen(PORT, () => {

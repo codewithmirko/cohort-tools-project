@@ -42,7 +42,7 @@ app.get("/docs", (req, res) => {
 // Student Routes
 
 app.get("/api/students", (req, res) => {
-  Student.find({})
+  Student.find({}).populate("cohort")
     .then((students) => {
       console.log("Retrieved students ->", students);
       res.json(students);
@@ -66,7 +66,7 @@ app.post("/api/students", (req, res) => {
 app.get("/api/students/cohort/:cohortId", (req, res) => {
   const { cohortId } = req.params;
 
-  Student.find({ cohort: cohortId })
+  Student.find({ cohort: cohortId }).populate("cohort")
     .then((students) => {
       res.status(200).json(students);
     })
@@ -80,7 +80,7 @@ app.get("/api/students/cohort/:cohortId", (req, res) => {
 app.get("/api/students/:studentId", (req, res) => {
   const { studentId } = req.params;
 
-  Student.findById(studentId)
+  Student.findById(studentId).populate("cohort")
     .then((student) => {
       res.status(200).json(student);
     })

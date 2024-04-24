@@ -6,6 +6,10 @@ const mongoose = require("mongoose");
 const Cohort = require("./models/cohort.model");
 const Student = require("./models/student.model");
 const PORT = 5005;
+const {
+  errorHandler,
+  notFoundHandler,
+} = require("./middleware/error-handling");
 
 // STATIC DATA
 // Devs Team - Import the provided files with JSON data of students and cohorts here:
@@ -41,70 +45,74 @@ app.get("/docs", (req, res) => {
 
 // Student Routes
 
-app.get("/api/students", (req, res) => {
-  Student.find({}).populate("cohort")
+app.get("/api/students", (req, res, next) => {
+  Student.find({})
+    .populate("cohort")
     .then((students) => {
       console.log("Retrieved students ->", students);
       res.json(students);
     })
-    .catch((error) => {
-      console.error("Error while retrieving students -> ", error);
-      res.status(500).json({ error: "Failed to retrieve students" });
+    .catch((err) => {
+      next(err);
+
+      console.error("Error while retrieving students -> ", err);
     });
 });
 
-app.post("/api/students", (req, res) => {
+app.post("/api/students", (req, res, next) => {
   Student.create(req.body)
     .then((newStudent) => {
       res.status(201).json(newStudent);
     })
-    .catch((error) => {
-      res.status(500).json({ message: `Error creating new student: ${error}` });
+    .catch((err) => {
+      next(err);
+
+      console.error("Error while creating a new student -> ", err);
     });
 });
 
-app.get("/api/students/cohort/:cohortId", (req, res) => {
+app.get("/api/students/cohort/:cohortId", (req, res, next) => {
   const { cohortId } = req.params;
 
-  Student.find({ cohort: cohortId }).populate("cohort")
+  Student.find({ cohort: cohortId })
+    .populate("cohort")
     .then((students) => {
       res.status(200).json(students);
     })
-    .catch((error) => {
-      res.status(500).json({
-        message: `Error retrieving students from one cohort: ${error}`,
-      });
+    .catch((err) => {
+      next(err);
+
+      console.error(`Error retrieving students from one cohort: ${err}`);
     });
 });
 
-app.get("/api/students/:studentId", (req, res) => {
+app.get("/api/students/:studentId", (req, res, next) => {
   const { studentId } = req.params;
 
-  Student.findById(studentId).populate("cohort")
+  Student.findById(studentId)
+    .populate("cohort")
     .then((student) => {
       res.status(200).json(student);
     })
     .catch((err) => {
-      res.status(500).json({
-        message: `Error on getting spesific student, error type:${err}`,
-      });
+      next(err);
+      console.error(`Error retrieving one student: ${err}`);
     });
 });
 
-app.put("/api/students/:studentId", (req, res) => {
+app.put("/api/students/:studentId", (req, res, next) => {
   const { studentId } = req.params;
   Student.findByIdAndUpdate(studentId, req.body, { new: true })
     .then((updatedStudent) => {
       res.status(200).json(updatedStudent);
     })
     .catch((err) => {
-      res.status(500).json({
-        message: `Error on updating student, error type:${err}`,
-      });
+      next(err);
+
+      console.error(`Error updating one student: ${err}`);
     });
 });
-
-app.delete("/api/students/:studentId", (req, res) => {
+app.delete("/api/students/:studentId", (req, res, next) => {
   const { studentId } = req.params;
 
   Student.findByIdAndDelete(studentId)
@@ -112,24 +120,25 @@ app.delete("/api/students/:studentId", (req, res) => {
       res.status(204).send();
     })
     .catch((err) => {
-      res.status(500).json({
-        message: ` ${err} on deleting spesific student`,
-      });
+      next(err);
+
+      console.error(`Error deleting one student: ${err}`);
     });
 });
-
 // Cohort Routes
-app.get("/api/cohorts", (req, res) => {
+app.get("/api/cohorts", (req, res, next) => {
   Cohort.find({})
     .then((cohorts) => {
       res.json(cohorts);
     })
-    .catch((error) => {
-      res.status(500).json({ message: "Failed to retrieve cohorts" });
+    .catch((err) => {
+      next(err);
+
+      console.error("Error while retrieving cohorts -> ", err);
     });
 });
 
-app.get("/api/cohorts/:cohortId", async (req, res) => {
+app.get("/api/cohorts/:cohortId", async (req, res, next) => {
   const { cohortId } = req.params;
 
   try {
@@ -138,23 +147,24 @@ app.get("/api/cohorts/:cohortId", async (req, res) => {
       return res.status(404).json({ message: "Cohort not found" });
     }
     res.status(200).json(cohort);
-  } catch (error) {
-    console.error("Error retrieving cohort:", error);
-    res.status(500).json({ message: "Error retrieving cohort" });
+  } catch (err) {
+    next(err);
+    console.error(`Error retrieving one cohort: ${err}`);
   }
 });
 
-app.post("/api/cohorts", (req, res) => {
+app.post("/api/cohorts", (req, res, next) => {
   Cohort.create(req.body)
     .then((newCohort) => {
       res.json(newCohort);
     })
-    .catch((error) => {
-      res.status(500).json({ message: `Failed to add a new cohort ${error}` });
+    .catch((err) => {
+      next(err);
+      console.error(`Error while creating a new cohort: ${err}`);
     });
 });
 
-app.delete("/api/cohorts/:cohortId", (req, res) => {
+app.delete("/api/cohorts/:cohortId", (req, res, next) => {
   const { cohortId } = req.params;
 
   Cohort.findByIdAndDelete(cohortId)
@@ -162,24 +172,25 @@ app.delete("/api/cohorts/:cohortId", (req, res) => {
       res.status(204).send("Test");
     })
     .catch((err) => {
-      res.status(500).json({
-        message: ` ${err} on deleting spesific cohort`,
-      });
+      next(err);
+      console.error(`Error deleting one cohort: ${err}`);
     });
 });
-
-app.put("/api/cohorts/:cohortId", (req, res) => {
+app.put("/api/cohorts/:cohortId", (req, res, next) => {
   const { cohortId } = req.params;
   Cohort.findByIdAndUpdate(cohortId, req.body, { new: true })
     .then((updatedCohort) => {
       res.status(200).json(updatedCohort);
     })
     .catch((err) => {
-      res.status(500).json({
-        message: `Error on updating cohort, error type:${err}`,
-      });
+      next(err);
+      console.error(`Error updating one cohort: ${err}`);
     });
 });
+
+app.use(errorHandler);
+app.use(notFoundHandler);
+
 // START SERVER
 app.listen(PORT, () => {
   console.log(`Server listening on port ${PORT}`);

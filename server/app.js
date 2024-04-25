@@ -43,6 +43,12 @@ app.get("/docs", (req, res) => {
   res.sendFile(__dirname + "/views/docs.html");
 });
 
+const indexRoutes = require("./routes/index.routes");
+app.use("/api", indexRoutes);
+
+const authRoutes = require("./routes/authenticate.routes");
+app.use("/auth", authRoutes);
+
 // Student Routes
 
 app.get("/api/students", (req, res, next) => {

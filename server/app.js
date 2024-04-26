@@ -198,7 +198,7 @@ app.put("/api/cohorts/:cohortId", (req, res, next) => {
 });
 
 app.get("/api/users/:userId", isAuthenticated, async (req, res, next) => {
-  const { userId } = req.body;
+  const { userId } = req.params;
 
   try {
     const user = await User.findById(userId);

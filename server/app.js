@@ -43,6 +43,15 @@ app.get("/docs", (req, res) => {
   res.sendFile(__dirname + "/views/docs.html");
 });
 
+const indexRoutes = require("./routes/index.routes");
+app.use("/api", indexRoutes);
+
+const authRoutes = require("./routes/authenticate.routes");
+const isAuthenticated = require("./middleware/jwt.middleware");
+const User = require("./models/user.model");
+
+app.use("/auth", authRoutes);
+
 // Student Routes
 
 app.get("/api/students", (req, res, next) => {
@@ -186,6 +195,21 @@ app.put("/api/cohorts/:cohortId", (req, res, next) => {
       next(err);
       console.error(`Error updating one cohort: ${err}`);
     });
+});
+
+app.get("/api/users/:userId", isAuthenticated, async (req, res, next) => {
+  const { userId } = req.params;
+
+  try {
+    const user = await User.findById(userId);
+    if (user) {
+      res.status(200).json(req.tokenPayload);
+    } else {
+      res.status(400).json({ message: "User not found" });
+    }
+  } catch (error) {
+    next(error);
+  }
 });
 
 app.use(errorHandler);

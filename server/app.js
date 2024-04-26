@@ -203,7 +203,7 @@ app.get("/api/users/:userId", isAuthenticated, async (req, res, next) => {
   try {
     const user = await User.findById(userId);
     if (user) {
-      res.status(200).json(req.payload);
+      res.status(200).json(req.tokenPayload);
     } else {
       res.status(400).json({ message: "User not found" });
     }

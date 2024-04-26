@@ -3,7 +3,7 @@ const bcrypt = require("bcryptjs");
 const router = require("express").Router();
 const jwt = require("jsonwebtoken");
 const isAuthenticated = require("../middleware/jwt.middleware");
-require('dotenv').config();
+require("dotenv").config();
 
 // Signup Route
 
@@ -90,9 +90,9 @@ router.post("/login", async (req, res, next) => {
         _id: foundUser._id,
       };
 
-      console.log(process.env.SECRET);
+      console.log(process.env.TOKEN_SECRET);
 
-      const authToken = jwt.sign(payload, process.env.SECRET, {
+      const authToken = jwt.sign(payload, process.env.TOKEN_SECRET, {
         algorithm: "HS256",
         expiresIn: "6h",
       });
